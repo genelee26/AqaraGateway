@@ -919,9 +919,68 @@ DEVICES = [{
     'lumi.airrtc.vrfegl01': ["Xiaomi", "VRF Air Conditioning"],
     'aqara.airrtc.ecn001': ["Aqara", "VRF Air Conditioning T1"],
     'params': [
-        ['13.1.85', None, 'channels', 'sensor'],
-        ['4.1.85', 'ac_state', 'climate 1', 'climate'],
-        ['4.2.85', 'ac_state', 'climate 2', 'climate'],
+        # [Physical Address, Logical key, HA name, Entity Type]
+        ['8.0.2007', 'lqi', 'LQI', 'sensor'],
+        ['8.0.2228', 'type_status', 'Type & Status Code', 'sensor'],
+        ['8.0.2238', 'db_version', 'Database Version', 'sensor'],
+        ['8.0.2226', 'sn_code', 'Serial Number', 'sensor'],
+        ['8.0.2002', 'reset_count', 'VRF Reset Count', 'sensor'],   # guess maybe not
+
+        # ==================== Climate 1 (Index 1 -> ID 8) ====================
+        ['0.8.85', 'current_temperature_1', 'current_temperature_1', None],
+        ['1.8.85', 'target_temperature_1', 'target_temperature_1', None],   # R/W
+        ['4.8.85', 'power_1', 'power_1', None],                             # R/W
+        ['14.8.85', 'fan_mode_1', 'fan_mode_1', None],                      # R/W
+        ['14.147.85', 'mode_1', 'mode_1', None],                            # R/W
+        ['4.8.85', 'ac_state', 'climate 1', 'climate'],
+
+        # ==================== Climate 2 (Index 2 -> ID 9) ====================
+        ['0.9.85', 'current_temperature_2', 'current_temperature_2', None],
+        ['1.9.85', 'target_temperature_2', 'target_temperature_2', None],
+        ['4.9.85', 'power_2', 'power_2', None],
+        ['14.9.85', 'fan_mode_2', 'fan_mode_2', None],
+        ['14.148.85', 'mode_2', 'mode_2', None],
+        ['4.9.85', 'ac_state', 'climate 2', 'climate'],
+
+        # ==================== Climate 3 (Index 3 -> ID 10) ====================
+        ['0.10.85', 'current_temperature_3', 'current_temperature_3', None],
+        ['1.10.85', 'target_temperature_3', 'target_temperature_3', None],
+        ['4.10.85', 'power_3', 'power_3', None],
+        ['14.10.85', 'fan_mode_3', 'fan_mode_3', None],
+        ['14.149.85', 'mode_3', 'mode_3', None],
+        ['4.10.85', 'ac_state', 'climate 3', 'climate'],
+
+        # ==================== Climate 4 (Index 4 -> ID 11) ====================
+        ['0.11.85', 'current_temperature_4', 'current_temperature_4', None],
+        ['1.11.85', 'target_temperature_4', 'target_temperature_4', None],
+        ['4.11.85', 'power_4', 'power_4', None],
+        ['14.11.85', 'fan_mode_4', 'fan_mode_4', None],
+        ['14.150.85', 'mode_4', 'mode_4', None],
+        ['4.11.85', 'ac_state', 'climate 4', 'climate'],
+
+        # ==================== Climate 5 (Index 5 -> ID 12) ====================
+        ['0.12.85', 'current_temperature_5', 'current_temperature_5', None],
+        ['1.12.85', 'target_temperature_5', 'target_temperature_5', None],
+        ['4.12.85', 'power_5', 'power_5', None],
+        ['14.12.85', 'fan_mode_5', 'fan_mode_5', None],
+        ['14.151.85', 'mode_5', 'mode_5', None],
+        ['4.12.85', 'ac_state', 'climate 5', 'climate'],
+
+        # ==================== Climate 6 (Index 6 -> ID 13) ====================
+        ['0.13.85', 'current_temperature_6', 'current_temperature_6', None],
+        ['1.13.85', 'target_temperature_6', 'target_temperature_6', None],
+        ['4.13.85', 'power_6', 'power_6', None],
+        ['14.13.85', 'fan_mode_6', 'fan_mode_6', None],
+        ['14.152.85', 'mode_6', 'mode_6', None],
+        ['4.13.85', 'ac_state', 'climate 6', 'climate'],
+
+        # ==================== Climate 7 (Index 7 -> ID 14) ====================
+        ['0.14.85', 'current_temperature_7', 'current_temperature_7', None],
+        ['1.14.85', 'target_temperature_7', 'target_temperature_7', None],
+        ['4.14.85', 'power_7', 'power_7', None],
+        ['14.14.85', 'fan_mode_7', 'fan_mode_7', None],
+        ['14.153.85', 'mode_7', 'mode_7', None],
+        ['4.14.85', 'ac_state', 'climate 7', 'climate'],
     ]
 }, {
     # button rotation

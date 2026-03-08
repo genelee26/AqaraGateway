@@ -55,149 +55,146 @@ class AqaraGenericClimate(GatewayGenericDevice, ClimateEntity):
     # pylint: disable=too-many-instance-attributes
     """Initialize the AqaraGenericClimate."""
 
-    def __init__(self, gateway, device, attr):
-        """Initialize the AqaraGenericClimate."""
-        self._attr = attr
-        self._current_hvac = None
-        self._current_temp = None
-        self._fan_mode = None
-        self._hvac_mode = None
-        self._swing_mode = None
-        self._is_on = None
-        self._state = None
-        self._target_temp = 0
-        self._model = device['model']
+    def __init__(self, gateway: Gateway, device: dict, attr: str):
         super().__init__(gateway, device, attr)
+        self.attr = attr
+        self.model = device.get('model')
 
+        # 提取索引数字，例如 "climate 1" -> 1
+        try:
+            self.index = int(attr.split()[-1])
+        except Exception:
+            self.index = 1
+
+        self._attr_hvac_mode = HVACMode.OFF
+        self._attr_hvac_modes = [
+            HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT, 
+            HVACMode.DRY, HVACMode.FAN_ONLY
+        ]
+
+        self._attr_fan_mode = "auto"
+        self._attr_fan_modes = ["auto", "low", "medium", "high"]
+
+        self._attr_supported_features = (
+            ClimateEntityFeature.TARGET_TEMPERATURE | 
+            ClimateEntityFeature.FAN_MODE
+        )
+        self._attr_temperature_unit = UnitOfTemperature.CELSIUS
+        self._attr_target_temperature_step = 0.5
+        self._attr_max_temp = 35
+        self._attr_min_temp = 16
+    
     @property
-    def precision(self) -> float:
-        """ return precision """
-        return PRECISION_WHOLE
+    def hvac_mode(self) -> HVACMode:
+        return self._attr_hvac_mode
 
-    @property
-    def temperature_unit(self):
-        """ return temperature uint """
-        return UnitOfTemperature.CELSIUS
+    async def async_set_temperature(self, **kwargs) -> None:
+        """针对 VRF T1 的特殊下发逻辑"""
+        if ATTR_TEMPERATURE not in kwargs:
+            return
+        temp = kwargs[ATTR_TEMPERATURE]
+        
+        if self.model == 'aqara.airrtc.ecn001':
+            target_key = f"target_temperature_{self.index}"
+            self.gateway.send(self.device, {target_key: int(temp * 100)})
+            self._attr_target_temperature = temp
+        else:
+            self.gateway.send(self.device, {'target_temperature': temp})
+        
+        if self.hass:    
+            self.async_write_ha_state()
 
-    @property
-    def hvac_mode(self) -> str:
-        """ return hvac mode """
-        return self._hvac_mode if self._is_on else HVACMode.OFF
+    async def async_set_hvac_mode(self, hvac_mode: str) -> None:
+        """针对 VRF T1 的模式与开关控制逻辑"""
+        if self.model == 'aqara.airrtc.ecn001':
+            # 1. 电源控制
+            pwr_key = f"power_{self.index}"
+            pwr_val = 0 if hvac_mode == HVACMode.OFF else 1
+            self.gateway.send(self.device, {pwr_key: pwr_val})
 
-    @property
-    def hvac_modes(self):
-        """ return hvac modes """
-        return [HVACMode.OFF, HVACMode.COOL, HVACMode.HEAT]
+            # 2. 模式控制
+            if hvac_mode != HVACMode.OFF:
+                mode_key = f"mode_{self.index}"
+                mode_map = {
+                    HVACMode.COOL: 1, HVACMode.DRY: 2, 
+                    HVACMode.FAN_ONLY: 3, HVACMode.HEAT: 4
+                }
+                payload = {
+                    mode_key: mode_map.get(hvac_mode, 1),
+                    pwr_key: pwr_val
+                }
+                self.gateway.send(self.device, payload)
+            
+            self._attr_hvac_mode = hvac_mode
+        else:
+            self.gateway.send(self.device, {'power': 1 if hvac_mode != HVACMode.OFF else 0})
+        
+        if self.hass:    
+            self.async_write_ha_state()
+        return
 
-    @property
-    def current_temperature(self):
-        """ return current temperature """
-        return self._current_temp
-
-    @property
-    def target_temperature(self):
-        """ return target temperature """
-        return self._target_temp
-
-    @property
-    def fan_mode(self):
-        """ return fan mode """
-        return self._fan_mode
-
-    @property
-    def fan_modes(self):
-        """ return fan modes """
-        return FAN_MODES
-
-    @property
-    def supported_features(self):
-        """ return supported features """
-        return ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE
-
+    async def async_set_fan_mode(self, fan_mode: str) -> None:
+        """针对 VRF T1 的风速设置逻辑"""
+        if self.model == 'aqara.airrtc.ecn001':
+            fan_key = f"fan_mode_{self.index}"
+            # res_id = f"14.{self.index + 7}.85"
+            fan_map = {"auto": 0, "low": 1, "medium": 2, "high": 3}
+            if fan_mode in fan_map:
+                self.gateway.send(self.device, {fan_key: fan_map[fan_mode]})
+            self._attr_fan_mode = fan_mode
+        else:
+            self.gateway.send(self.device, {'fan_mode': fan_mode})
+            
+        if self.hass:    
+            self.async_write_ha_state()
+        return
+    
     def update(self, data: dict = None):
         # pylint: disable=broad-except
         """ update climate """
-        try:
-            if 'power' in data:  # 0 - off, 1 - on
-                self._is_on = data['power']
-
-                # with power off all data come with empty values
-                # https://github.com/AlexxIT/XiaomiGateway3/issues/101#issuecomment-747305596
-                if self._is_on:
-                    if 'mode' in data:
-                        self._hvac_mode = HVAC_MODES[data['mode']]
-                    if 'fan_mode' in data:
-                        self._fan_mode = FAN_MODES[data['fan_mode']]
-                    if 'current_temperature' in data:
-                        self._current_temp = data['current_temperature'] / 100
-                    if 'target_temperature' in data:
-                        self._target_temp = data['target_temperature'] / 100
-
-                else:
-                    self._fan_mode = None
-                    self._hvac_mode = None
-                    self._target_temp = 0
-                    if 'fan_mode' in data:
-                        self._fan_mode = FAN_MODES[data['fan_mode']]
-
-            if 'current_temperature' in data:
-                self._current_temp = data['current_temperature'] / 100
-            if 'target_temperature' in data:
-                self._target_temp = data['target_temperature'] / 100
-
-            if self._attr in data:
-                self._state = bytearray(
-                    int(data[self._attr]).to_bytes(4, 'big')
-                )
-
-                # only first time when retain from gateway
-                if isinstance(data[self._attr], str):
-                    self._hvac_mode = next(
-                        k for k, v in AC_STATE_HVAC.items()
-                        if v == self._state[0]
-                    )
-                    if 'aqara.airrtc' in self._model:
-                        self._fan_mode = next(
-                            k for k, v in AC_STATE_FAN2.items()
-                            if v == self._state[1]
-                        )
-                    else:
-                        self._fan_mode = next(
-                            k for k, v in AC_STATE_FAN.items()
-                            if v == self._state[1]
-                        )
-                    self._target_temp = self._state[2]
-
-        except Exception:
-            _LOGGER.exception("Can't read climate data: %s", data)
-
-        self.schedule_update_ha_state()
-
-    def set_temperature(self, **kwargs) -> None:
-        """ set temperature """
-        if not self._state or kwargs[ATTR_TEMPERATURE] == 0:
-            self.debug(f"Can't set climate temperature: {self._state}")
+        if not data:
             return
-        self._state[2] = int(kwargs[ATTR_TEMPERATURE])
-        state = int.from_bytes(self._state, 'big')
-        self.gateway.send(self.device, {self._attr: state})
+        _LOGGER.debug(f"VRF T1 Received Data: {data}")
 
-    def set_fan_mode(self, fan_mode: str) -> None:
-        """ set fan mode """
-        if not self._state:
-            return
-        self._state[1] = AC_STATE_FAN[fan_mode]
-        state = int.from_bytes(self._state, 'big')
-        self.gateway.send(self.device, {self._attr: state})
+        idx = self.index
+        keys = {
+            'cur': f'current_temperature_{idx}',
+            'tar': f'target_temperature_{idx}',
+            'pwr': f'power_{idx}',
+            'mod': f'mode_{idx}',
+            'fan': f'fan_mode_{idx}'
+        }
 
-    def set_hvac_mode(self, hvac_mode: str) -> None:
-        """ set hvac mode """
-        if not self._state:
-            return
-        self._state[0] = AC_STATE_HVAC[hvac_mode]
-        state = int.from_bytes(self._state, 'big')
-        self.gateway.send(self.device, {self._attr: state})
+        if keys['cur'] in data:
+            val = data[keys['cur']]
+            if val > 0:
+                self._attr_current_temperature = val / 100 if val > 500 else val
+        
+        if keys['tar'] in data:
+            val = data[keys['tar']]
+            if val > 0:
+                self._attr_target_temperature = val / 100 if val > 500 else val
 
+        if keys['pwr'] in data:
+            is_on = data[keys['pwr']] == 1
+            if not is_on:
+                self._attr_hvac_mode = HVACMode.OFF
+            else:
+                if self._attr_hvac_mode == HVACMode.OFF:    # If power is ON and display as OFF, reset the mode according to the mode_key
+                    self._attr_hvac_mode = HVACMode.COOL    # Set the default mode
+
+        if keys['mod'] in data:
+            if self._attr_hvac_mode != HVACMode.OFF:
+                #0: Off  1: Cool  2: Dry  3: Fan_Only  4: Heat
+                mode_map = {1: HVACMode.COOL, 2: HVACMode.DRY, 3: HVACMode.FAN_ONLY, 4: HVACMode.HEAT}
+                self._attr_hvac_mode = mode_map.get(data[keys['mod']], HVACMode.COOL)
+
+        if keys['fan'] in data:
+            fan_map = {0: "auto", 1: "low", 2: "medium", 3: "high"}
+            self._attr_fan_mode = fan_map.get(data[keys['fan']], "auto")
+
+        if self.hass:    
+            self.async_write_ha_state()
 
 class AqaraClimateYuba(AqaraGenericClimate, ClimateEntity):
     # pylint: disable=too-many-instance-attributes
