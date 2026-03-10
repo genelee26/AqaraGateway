@@ -3,6 +3,7 @@
 import logging
 import re
 import uuid
+import warnings
 from datetime import datetime
 from typing import Optional
 
@@ -12,7 +13,10 @@ from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.device_registry import DeviceRegistry
-from miio import Device, DeviceException
+# python-miio miot_device.py 在 Python 3.13+ 中会触发 FutureWarning，此处仅抑制该库的警告
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=FutureWarning)
+    from miio import Device, DeviceException
 
 from .const import AIOT_MODELS, SIGMASTAR_MODELS, NO_ALARM_MODE_MODELS, INFRARED_SUPPORTED_MODELS
 

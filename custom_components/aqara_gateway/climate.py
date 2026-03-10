@@ -87,6 +87,11 @@ class AqaraGenericClimate(GatewayGenericDevice, ClimateEntity):
     @property
     def hvac_mode(self) -> HVACMode:
         return self._attr_hvac_mode
+    
+    @property
+    def available(self) -> bool:
+        """强制可用性逻辑：只要网关还在，实体就不许变灰"""
+        return self.gateway is not None and self.gateway.available
 
     async def async_set_temperature(self, **kwargs) -> None:
         """针对 VRF T1 的特殊下发逻辑"""
@@ -156,42 +161,46 @@ class AqaraGenericClimate(GatewayGenericDevice, ClimateEntity):
             return
         _LOGGER.debug(f"VRF T1 Received Data: {data}")
 
-        idx = self.index
-        keys = {
-            'cur': f'current_temperature_{idx}',
-            'tar': f'target_temperature_{idx}',
-            'pwr': f'power_{idx}',
-            'mod': f'mode_{idx}',
-            'fan': f'fan_mode_{idx}'
-        }
+        try:
+            idx = self.index
+            keys = {
+                'cur': f'current_temperature_{idx}',
+                'tar': f'target_temperature_{idx}',
+                'pwr': f'power_{idx}',
+                'mod': f'mode_{idx}',
+                'fan': f'fan_mode_{idx}'
+            }
 
-        if keys['cur'] in data:
-            val = data[keys['cur']]
-            if val > 0:
-                self._attr_current_temperature = val / 100 if val > 500 else val
+            if keys['cur'] in data:
+                val = data[keys['cur']]
+                if val > 0:
+                    self._attr_current_temperature = val / 100 if val > 500 else val
+            
+            if keys['tar'] in data:
+                val = data[keys['tar']]
+                if val > 0:
+                    self._attr_target_temperature = val / 100 if val > 500 else val
+
+            if keys['pwr'] in data:
+                is_on = data[keys['pwr']] == 1
+                if not is_on:
+                    self._attr_hvac_mode = HVACMode.OFF
+                else:
+                    if self._attr_hvac_mode == HVACMode.OFF:    # If power is ON and display as OFF, reset the mode according to the mode_key
+                        self._attr_hvac_mode = HVACMode.COOL    # Set the default mode
+
+            if keys['mod'] in data:
+                if self._attr_hvac_mode != HVACMode.OFF:
+                    #0: Off  1: Cool  2: Dry  3: Fan_Only  4: Heat
+                    mode_map = {1: HVACMode.COOL, 2: HVACMode.DRY, 3: HVACMode.FAN_ONLY, 4: HVACMode.HEAT}
+                    self._attr_hvac_mode = mode_map.get(data[keys['mod']], HVACMode.COOL)
+
+            if keys['fan'] in data:
+                fan_map = {0: "auto", 1: "low", 2: "medium", 3: "high"}
+                self._attr_fan_mode = fan_map.get(data[keys['fan']], "auto")
         
-        if keys['tar'] in data:
-            val = data[keys['tar']]
-            if val > 0:
-                self._attr_target_temperature = val / 100 if val > 500 else val
-
-        if keys['pwr'] in data:
-            is_on = data[keys['pwr']] == 1
-            if not is_on:
-                self._attr_hvac_mode = HVACMode.OFF
-            else:
-                if self._attr_hvac_mode == HVACMode.OFF:    # If power is ON and display as OFF, reset the mode according to the mode_key
-                    self._attr_hvac_mode = HVACMode.COOL    # Set the default mode
-
-        if keys['mod'] in data:
-            if self._attr_hvac_mode != HVACMode.OFF:
-                #0: Off  1: Cool  2: Dry  3: Fan_Only  4: Heat
-                mode_map = {1: HVACMode.COOL, 2: HVACMode.DRY, 3: HVACMode.FAN_ONLY, 4: HVACMode.HEAT}
-                self._attr_hvac_mode = mode_map.get(data[keys['mod']], HVACMode.COOL)
-
-        if keys['fan'] in data:
-            fan_map = {0: "auto", 1: "low", 2: "medium", 3: "high"}
-            self._attr_fan_mode = fan_map.get(data[keys['fan']], "auto")
+        except Exception as e:
+            _LOGGER.error(f"VRF T1 Error on Climate_{self.index}: {e}")
 
         if self.hass:    
             self.async_write_ha_state()
