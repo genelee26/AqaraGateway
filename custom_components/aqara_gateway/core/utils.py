@@ -925,6 +925,7 @@ DEVICES = [{
         ['8.0.2223', 'back_version', 'back_version', None],
         ['8.0.2238', 'db_version', 'DB Version', 'sensor'],
         ['8.0.2226', 'sn_code', 'sn_code', None],
+        [None, None, 'vrf_scan', 'switch'],
     ]
 }, {
     # button rotation
