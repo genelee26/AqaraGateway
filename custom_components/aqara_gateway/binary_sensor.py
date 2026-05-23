@@ -51,6 +51,33 @@ DEVICE_CLASS = {
 }
 
 
+# Whitelist of meaningful button event values produced by Aqara switches.
+# Values match BUTTON / BUTTON_BOTH dicts in core/const.py.
+# Numeric 0/1 channel-state echoes and HA placeholder values ("", "unknown",
+# "unavailable") are filtered out to suppress heartbeat noise that would
+# otherwise be recorded by the recorder.
+_BUTTON_EVENT_SUFFIXES = frozenset({
+    'single', 'double', 'triple', 'quadruple',
+    'hold', 'release', 'shake',
+    'clockwise', 'counterclockwise',
+    'hold_clockwise', 'hold_counterclockwise',
+    'rotate', 'hold_rotate', 'many',
+    'unknown',
+})
+
+
+def _is_button_click_event(value) -> bool:
+    """True iff value is a meaningful click event from BUTTON / BUTTON_BOTH dict."""
+    if not isinstance(value, str) or not value:
+        return False
+    if value in _BUTTON_EVENT_SUFFIXES:
+        return True
+    # Multi-gang: button_<N>_<suffix>  /  button_both[_<digits>]_<suffix>
+    if value.startswith('button_'):
+        return value.rsplit('_', 1)[-1] in _BUTTON_EVENT_SUFFIXES
+    return False
+
+
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """ Perform the setup for Xiaomi/Aqara devices. """
     def setup(gateway: Gateway, device: dict, attr: str):
@@ -581,7 +608,7 @@ class GatewayButtonSwitch(GatewayBinarySensor, BinarySensorEntity):
                     value, 'unknown')
                 break
 
-        if self._attr in data:
+        if self._attr in data and _is_button_click_event(data[self._attr]):
             self._state = data[self._attr]
             self.async_write_ha_state()
 
