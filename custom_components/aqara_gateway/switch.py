@@ -87,9 +87,7 @@ class GatewaySwitch(GatewayGenericDevice, SwitchEntity, RestoreEntity):
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
-        self._attrs[ATTR_CHIP_TEMPERATURE] = self._chip_temperature
         self._attrs[ATTR_FW_VER] = self._fw_ver
-        self._attrs[ATTR_LQI] = self._lqi
         if self.feature.get('support_power_consumption', False):
             self._attrs[ATTR_LOAD_POWER] = self._load_power
             self._attrs[ATTR_POWER_CONSUMED] = self._power_consumed

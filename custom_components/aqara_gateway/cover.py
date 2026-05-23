@@ -167,9 +167,7 @@ class XiaomiGenericCover(GatewayGenericDevice, CoverEntity, RestoreEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         self._attrs[ATTR_CURRENT_POSITION] = self._pos
-        self._attrs[ATTR_CHIP_TEMPERATURE] = self._chip_temperature
         self._attrs[ATTR_FW_VER] = self._fw_ver
-        self._attrs[ATTR_LQI] = self._lqi
         self._attrs[ATTR_POLARITY] = self._polarity
         self._attrs[ATTR_MOTOR_STROKE] = self._motor_stroke
         self._attrs[ATTR_CHARGING_STATUS] = self._charging_status

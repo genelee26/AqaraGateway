@@ -79,9 +79,7 @@ class GatewayAirMonitorSensor(GatewayGenericDevice, AirQualityEntity):
         """Return the state attributes."""
         attrs = {
             ATTR_BATTERY_LEVEL: self._battery,
-            ATTR_CHIP_TEMPERATURE: self._chip_temperature,
             ATTR_FW_VER: self._fw_ver,
-            ATTR_LQI: self._lqi,
             ATTR_VOLTAGE: self._voltage,
         }
         return attrs
@@ -193,9 +191,7 @@ class GatewayTvocSensor(GatewayAirMonitorSensor, AirQualityEntity):
         """Return the state attributes."""
         attrs = {
             ATTR_BATTERY_LEVEL: self._battery,
-            ATTR_CHIP_TEMPERATURE: self._chip_temperature,
             ATTR_FW_VER: self._fw_ver,
-            ATTR_LQI: self._lqi,
             ATTR_TVOC: self._total_volatile_organic_compounds,
             ATTR_VOLTAGE: self._voltage,
         }

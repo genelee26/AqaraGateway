@@ -145,10 +145,8 @@ class GatewayNatgasSensor(GatewayBinarySensor, BinarySensorEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         attrs = {
-            ATTR_CHIP_TEMPERATURE: self._chip_temperature,
             ATTR_DENSITY: self._density,
             ATTR_FW_VER: self._fw_ver,
-            ATTR_LQI: self._lqi,
         }
         return attrs
 
@@ -214,8 +212,6 @@ class GatewayMotionSensor(GatewayBinarySensor):
     def extra_state_attributes(self):
         """Return the state attributes."""
         self._attrs[ATTR_BATTERY_LEVEL] = self._battery
-        self._attrs[ATTR_CHIP_TEMPERATURE] = self._chip_temperature
-        self._attrs[ATTR_LQI] = self._lqi
         self._attrs[ATTR_VOLTAGE] = self._voltage
         return self._attrs
 
@@ -350,9 +346,7 @@ class GatewayDoorSensor(GatewayBinarySensor, BinarySensorEntity):
         """Return the state attributes."""
         attrs = {
             ATTR_BATTERY_LEVEL: self._battery,
-            ATTR_LQI: self._lqi,
             ATTR_VOLTAGE: self._voltage,
-            ATTR_CHIP_TEMPERATURE: self._chip_temperature,
         }
         if self.has_since:
             attrs[ATTR_OPEN_SINCE] = self._open_since
@@ -417,8 +411,6 @@ class GatewaWaterLeakSensor(GatewayBinarySensor, BinarySensorEntity):
         """Return the state attributes."""
         attrs = {
             ATTR_BATTERY_LEVEL: self._battery,
-            ATTR_CHIP_TEMPERATURE: self._chip_temperature,
-            ATTR_LQI: self._lqi,
             ATTR_VOLTAGE: self._voltage,
         }
         return attrs
@@ -478,10 +470,8 @@ class GatewaySmokeSensor(GatewayBinarySensor, BinarySensorEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         attrs = {
-            ATTR_CHIP_TEMPERATURE: self._chip_temperature,
             ATTR_DENSITY: self._density,
             ATTR_FW_VER: self._fw_ver,
-            ATTR_LQI: self._lqi,
             ATTR_VOLTAGE: self._voltage,
         }
         return attrs
@@ -547,8 +537,6 @@ class GatewayButtonSwitch(GatewayBinarySensor, BinarySensorEntity):
         """Return the state attributes."""
         attrs = {
             ATTR_BATTERY_LEVEL: self._battery,
-            ATTR_CHIP_TEMPERATURE: self._chip_temperature,
-            ATTR_LQI: self._lqi,
             ATTR_VOLTAGE: self._voltage,
         }
         return attrs
@@ -650,8 +638,6 @@ class GatewayAction(GatewayBinarySensor, BinarySensorEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         self._attrs[ATTR_BATTERY_LEVEL] = self._battery
-        self._attrs[ATTR_CHIP_TEMPERATURE] = self._chip_temperature
-        self._attrs[ATTR_LQI] = self._lqi
         self._attrs[ATTR_VOLTAGE] = self._voltage
 
         if self.with_rotation:

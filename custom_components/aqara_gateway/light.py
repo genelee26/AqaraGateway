@@ -103,10 +103,8 @@ class GatewayLight(GatewayGenericDevice, LightEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         if self.device['type'] == 'zigbee':
-            self._attrs[ATTR_CHIP_TEMPERATURE] = self._chip_temperature
             self._attrs[ATTR_HW_VER] = self._hw_ver
             self._attrs[ATTR_FW_VER] = self._fw_ver
-            self._attrs[ATTR_LQI] = self._lqi
 
         return self._attrs
 

@@ -158,9 +158,7 @@ class GatewaySensor(GatewayGenericDevice, SensorEntity):
         if self.with_attr:
             attrs = {
                 ATTR_BATTERY_LEVEL: self._battery,
-                ATTR_LQI: self._lqi,
                 ATTR_VOLTAGE: self._voltage,
-                ATTR_CHIP_TEMPERATURE: self._chip_temperature,
             }
             return attrs
         return None
@@ -362,7 +360,6 @@ class GatewayLockSensor(GatewaySensor):
         attrs = {
             ATTR_BATTERY_LEVEL: self._battery,
             ATTR_FW_VER: self._fw_ver,
-            ATTR_LQI: self._lqi,
             ATTR_VOLTAGE: self._voltage,
             ATTR_LOCK_STATUS: self._lock_status,
             ATTR_LATCH_STATUS: self._latch_status,
@@ -567,8 +564,6 @@ class GatewayOccupancyRegionSensor(GatewaySensor):
     def extra_state_attributes(self):
         """Return the state attributes."""
         attrs = {
-            ATTR_LQI: self._lqi,
-            ATTR_CHIP_TEMPERATURE: self._chip_temperature,
             ATTR_APPROACHING_DISTANCE: self._approaching_distance,
             ATTR_DETECTING_REGION: self._detecting_region,
             ATTR_EXITS_ENTRANCES_REGION: self._exits_entrances_region,
