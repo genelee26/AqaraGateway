@@ -7,7 +7,12 @@ from homeassistant.const import (
     ATTR_VOLTAGE,
     STATE_PROBLEM,
 )
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
+from homeassistant.helpers.entity import EntityCategory
 
 from . import DOMAIN, GatewayGenericDevice
 from .core.gateway import Gateway
@@ -88,6 +93,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
             async_add_entities([GatewayMoveSensor(gateway, device, attr)])
         elif attr == 'occupancy_region':
             async_add_entities([GatewayOccupancyRegionSensor(gateway, device, attr)])
+        elif attr in ('lqi', 'chip_temperature'):
+            async_add_entities([AqaraDiagnosticSensor(gateway, device, attr)])
         else:
             async_add_entities([GatewaySensor(gateway, device, attr)])
 
@@ -99,6 +106,46 @@ async def async_unload_entry(hass, entry):
     # pylint: disable=unused-argument
     """ unload entry """
     return True
+
+
+class AqaraDiagnosticSensor(GatewayGenericDevice, SensorEntity):
+    """Diagnostic sensor exposing per-device LQI or chip temperature.
+
+    Auto-created for every Zigbee subdevice by gateway.py's params injection.
+    Disabled by default in HA's entity registry — enable per device when
+    needed (e.g., diagnosing Zigbee mesh issues or thermal problems).
+
+    Once enabled the entity updates on every gateway message (~5-10 min
+    interval for most devices). If enabling broadly, add the entity ids
+    to recorder.exclude.entity_globs to avoid re-introducing the
+    heartbeat noise that this fork's earlier perf commits filter out.
+    """
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, gateway, device, attr):
+        super().__init__(gateway, device, attr)
+        self._state = None
+        if attr == 'chip_temperature':
+            self._attr_native_unit_of_measurement = '°C'
+            self._attr_device_class = SensorDeviceClass.TEMPERATURE
+            self._attr_icon = 'mdi:thermometer'
+        elif attr == 'lqi':
+            self._attr_icon = 'mdi:signal-variant'
+
+    @property
+    def state(self):
+        return self._state
+
+    def update(self, data: dict = None):
+        if not data or self._attr not in data:
+            return
+        new_val = data[self._attr]
+        if new_val != self._state:
+            self._state = new_val
+            self.async_write_ha_state()
 
 
 class GatewaySensor(GatewayGenericDevice, SensorEntity):

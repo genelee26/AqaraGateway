@@ -921,7 +921,7 @@ DEVICES = [{
     'params': [
         # Base sensors only; climate zones are injected dynamically
         # by gateway.py based on user-configured VRF unit IDs.
-        ['8.0.2007', 'lqi', 'LQI', 'sensor'],
+        ['8.0.2007', 'lqi', 'lqi', 'sensor'],
         ['8.0.2223', 'back_version', 'back_version', None],
         ['8.0.2238', 'db_version', 'DB Version', 'sensor'],
         ['8.0.2226', 'sn_code', 'sn_code', None],

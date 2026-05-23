@@ -468,6 +468,26 @@ class Gateway:
                              f'climate {zone}', 'climate'],
                         ])
 
+                # Inject diagnostic LQI / Chip Temperature sensor params for
+                # every zigbee subdevice. These entities are disabled by default
+                # (via AqaraDiagnosticSensor.entity_registry_enabled_default=False);
+                # users can enable per-device in HA UI when they need to see
+                # signal strength or thermal data. If enabling broadly, consider
+                # adding sensor.*_lqi / sensor.*_chip_temperature to
+                # recorder.exclude.entity_globs to avoid re-introducing the
+                # heartbeat noise that this fork explicitly filters elsewhere.
+                if device['type'] == 'zigbee':
+                    existing_attrs_lower = {
+                        p[2].lower() for p in device['params'] if p[2]
+                    }
+                    if 'lqi' not in existing_attrs_lower:
+                        device['params'].append(
+                            ['8.0.2007', 'lqi', 'lqi', 'sensor'])
+                    if 'chip_temperature' not in existing_attrs_lower:
+                        device['params'].append(
+                            ['8.0.2006', 'chip_temperature',
+                             'chip_temperature', 'sensor'])
+
                 self.devices[device['did']] = device
 
                 for param in (device['params'] or device['mi_spec']):
