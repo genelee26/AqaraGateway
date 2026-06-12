@@ -1,10 +1,29 @@
 
-<a href="https://www.buymeacoffee.com/niceboygithub" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+# Aqara Gateway/Hub integration for Home Assistant — genelee26 fork
 
-# Aqara Gateway/Hub (G2H, M1S CN, P3 CN, M2 CN, H1 CN, E1 CN, G3 CN, G2H Pro, M2 2022, M2 old EU/Global, M1S 2022, M3) integration for Home Assistant
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-support_this_fork-FFDD00?logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/genelee26)
+
+> This is **[genelee26](https://github.com/genelee26)'s fork** of
+> [niceboygithub/AqaraGateway](https://github.com/niceboygithub/AqaraGateway),
+> kept current and extended with extra devices and fixes (see *What this fork
+> adds* below). The heavy lifting is the original authors' — full credit and
+> their donation link are in [Acknowledgements](#acknowledgements).
+
+Supported gateways/hubs: G2H, M1S CN, P3 CN, M2 CN, H1 CN, E1 CN, G3 CN, G2H Pro,
+M2 2022, M2 old EU/Global, M1S 2022, M3.
 
 Control Zigbee devices from Home Assistant with **Aqara Gateway (KTBL12LM, ZHWG15LM, ZHWG12LM, ZNSXJ12LM, ZNSXJ12LM, ZNSXJ13LM, ZNSXJ15LM, ZHWG19LM, ZHWG20LM, ZHWG24LM)**.
 Gateway support **Zigbee 3**.
+
+## What this fork adds
+
+- **Hitachi AC VRF support** — drive Hitachi VRF air-conditioners through the Aqara P3 controller, including **multi-zone** (multiple indoor units) with an indoor-unit scan.
+- **Climate component hardening** — a real `available` property + error handling, plus a readability refactor of the climate logic.
+- **Opt-in diagnostics** — LQI and chip temperature exposed as optional diagnostic sensors.
+- **Recorder-friendly** — filters heartbeat 0/1 echoes and keeps LQI / chip-temperature out of `extra_state_attributes`, so the recorder DB stays lean.
+- **Home Assistant 2026.2.x compatibility** — kept building and running on current HA.
+
+Everything below is the upstream documentation, which applies unchanged to this fork.
 
 This integration was based on the development of [@AlexxIT](https://github.com/AlexxIT/XiaomiGateway3/), Thanks Alex.
 
@@ -18,7 +37,7 @@ For Gateway M1S CN, AirCondition P3 CN, Hub E1 CN, Gateway M1S 2022 CN, please s
 
 ## Installation
 
-you can install component with [HACS](https://hacs.xyz),  custom repo: HACS > Integrations > 3 dots (upper top corner) > Custom repositories > URL: `niceboygithub/AqaraGateway` > Category: Integration
+you can install component with [HACS](https://hacs.xyz),  custom repo: HACS > Integrations > 3 dots (upper top corner) > Custom repositories > URL: `genelee26/AqaraGateway` > Category: Integration (use `niceboygithub/AqaraGateway` instead if you want upstream without this fork's extras)
 
 Or Download and copy `custom_components/aqara_gateway` folder to `custom_components` folder in your HomeAssistant config folder
 
@@ -217,3 +236,21 @@ In the non-directional monitoring mode, only report 0, 1, 6, 7;
 ```
 
 **Attention:** The component is under active development.
+
+## Acknowledgements
+
+- Original integration by **[@niceboygithub](https://github.com/niceboygithub/AqaraGateway)** — this fork is built directly on their work. Please support the original author:
+  <a href="https://www.buymeacoffee.com/niceboygithub" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy niceboygithub a coffee" height="34"></a>
+- Based on the development of **[@AlexxIT](https://github.com/AlexxIT/XiaomiGateway3/)**.
+
+## Support this fork
+
+If this fork's extra device support or fixes helped you, a coffee for the
+maintenance is appreciated — purely optional, nothing is gated.
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-support-FFDD00?logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/genelee26)
+
+Friends in China can tip via WeChat Pay:
+
+<img src="images/wechat_pay.png" width="280" alt="WeChat tip">
+
