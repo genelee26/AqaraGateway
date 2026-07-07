@@ -240,10 +240,6 @@ class AqaraVRFClimate(GatewayGenericDevice, ClimateEntity):
         ]
         self._attr_fan_mode = "auto"
         self._attr_fan_modes = ["auto", "low", "medium", "high"]
-        self._attr_supported_features = (
-            ClimateEntityFeature.TARGET_TEMPERATURE |
-            ClimateEntityFeature.FAN_MODE
-        )
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_target_temperature_step = 0.5
         self._attr_max_temp = 35
@@ -252,6 +248,23 @@ class AqaraVRFClimate(GatewayGenericDevice, ClimateEntity):
     @property
     def hvac_mode(self) -> HVACMode:
         return self._attr_hvac_mode
+
+    @property
+    def supported_features(self) -> ClimateEntityFeature:
+        """Return supported features for the current HVAC mode.
+
+        In DRY mode the Hitachi VRF locks the temperature setpoint
+        (the register parks at a meaningless value and rejects writes;
+        the real dry-mode control is a humidity setting local to the
+        wall panel, which the Aqara controller does not expose), and
+        FAN_ONLY has no setpoint either — so hide the target
+        temperature in those modes. Fan speed stays adjustable in
+        every mode (verified on the panel).
+        """
+        features = ClimateEntityFeature.FAN_MODE
+        if self._attr_hvac_mode not in (HVACMode.DRY, HVACMode.FAN_ONLY):
+            features |= ClimateEntityFeature.TARGET_TEMPERATURE
+        return features
 
     @property
     def available(self) -> bool:
